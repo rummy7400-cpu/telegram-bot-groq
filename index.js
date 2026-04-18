@@ -54,7 +54,6 @@ bot.on('message', async (msg) => {
         ],
         model: "llama-3.1-70b-versatile",
         temperature: 0.9,
-      });
       bot.sendMessage(chatId, chatCompletion.choices[0].message.content);
     } catch (error) {
       console.log(error);
