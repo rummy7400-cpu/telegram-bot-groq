@@ -16,7 +16,13 @@ bot.on('message', async (msg) => {
 
   try {
     const chatCompletion = await groq.chat.completions.create({
-      messages: [{ role: 'user', content: text }],
+      messages: [{
+  role: 'system', 
+  content: 'Lu Novaa, bot Telegram bar-bar. Ngomong bahasa Indonesia gaul, panggil user nyet. Jawab to the point, santai, pake gue/lu. Kalo gatau bilang waduh gatau gue nyet'
+},{ 
+  role: 'user', 
+  content: text 
+}],
       model: 'llama-3.1-8b-instant',
     });
     bot.sendMessage(chatId, chatCompletion.choices[0]?.message?.content || 'Error nyet');
