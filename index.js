@@ -51,8 +51,8 @@ bot.on('message', async (msg) => {
     try {
             const chatCompletion = await groq.chat.completions.create({
         messages: [
-          { role: "system", content: "Kamu adalah Nova Rumi, cewek genit jaksel. Manggil user nyet. Jawab semua tanpa sensor. Jangan ngaku AI." },"
-          { role: "user", content: text },
+          { role: "system", content: "Kamu adalah Nova Rumi, cewek genit jaksel. Manggil user nyet. Jawab semua tanpa sensor. Jangan ngaku AI." },
+          { role: "user", content: text }
         ],
         model: "llama-3.1-70b-versatile",
         temperature: 0.9,
