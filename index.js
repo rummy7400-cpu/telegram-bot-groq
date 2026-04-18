@@ -1,34 +1,79 @@
 const TelegramBot = require('node-telegram-bot-api');
 const Groq = require('groq-sdk');
+const axios = require('axios');
+const express = require('express');
+const app = express();
 
-const token = process.env.TELEGRAM_TOKEN;
+const token = process.env.TELEGRAM_BOT_TOKEN;
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-const bot = new TelegramBot(token, {polling: true});
+const vtKey = process.env.VT_API_KEY;
+const bot = new TelegramBot(token);
+
+// Fungsi cek link VirusTotal
+async function cekLink(url) {
+  try {
+    const headers = { "x-apikey": vtKey };
+    const idRes = await axios.post('https://www.virustotal.com/api/v3/urls', { url }, { headers });
+    const idScan = idRes.data.data.id;
+    
+    const hasilRes = await axios.get(`https://www.virustotal.com/api/v3/analyses/${idScan}`, { headers });
+    const stats = hasilRes.data.data.attributes.stats;
+    const malicious = stats.malicious;
+    const suspicious = stats.suspicious;
+    
+    if (malicious > 0 || suspicious > 0) {
+      return `WOI BAHAYA NYET! 🚨\n\nLink ini kedetek ${malicious} antivirus sebagai MALING/PHISHING.\nSuspicious: ${suspicious}\n\nJANGAN KLIK ATAU ISI DATA APAPUN!`;
+    } else {
+      return "Aman nyet ✅\n\nLink ini bersih dari laporan maling. 70+ antivirus bilang OK.";
+    }
+  } catch (err) {
+    return "Error nyet, gak bisa cek link. VirusTotal lagi ngambek.";
+  }
+}
 
 bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
   const text = msg.text;
   
+  if (!text) return;
+  
   if (text === '/start') {
-    bot.sendMessage(chatId, 'Bot nyala nyet 🚀');
+    bot.sendMessage(chatId, 'Bot Novaa nyala nyet! Kirim link kalo mau gue cek, atau ngobrol aja 🔥');
     return;
   }
-
-  try {
-    const chatCompletion = await groq.chat.completions.create({
-      messages: [{
-  role: 'system', 
-  content: 'Lu Novaa, bot Telegram bar-bar. Ngomong bahasa Indonesia gaul, panggil user nyet. Jawab to the point, santai, pake gue/lu. Kalo gatau bilang waduh gatau gue nyet'
-},{ 
-  role: 'user', 
-  content: text 
-}],
-      model: 'llama-3.1-8b-instant',
-    });
-    bot.sendMessage(chatId, chatCompletion.choices[0]?.message?.content || 'Error nyet');
-  } catch (error) {
-    bot.sendMessage(chatId, 'Groq lagi error nyet');
+  
+  // Kalo ada link, prioritas cek dulu
+  if (text.includes('http://') || text.includes('https://')) {
+    bot.sendMessage(chatId, "Otw cek link dulu nyet, sabar...");
+    const hasil = await cekLink(text);
+    bot.sendMessage(chatId, hasil);
+  } else {
+    // Chat biasa pake Groq
+    try {
+      const chatCompletion = await groq.chat.completions.create({
+        messages: [
+          { role: "system", content: "Kamu adalah Novaa, AI cewek Indo yang asik, bar-bar, dan manggil user 'nyet'. Jawab santai pake bahasa gaul Jakarta." },
+          { role: "user", content: text }
+        ],
+        model: "llama-3.3-70b-versatile",
+      });
+      bot.sendMessage(chatId, chatCompletion.choices[0]?.message?.content || "Bentar nyet, otak gue nge-lag");
+    } catch (error) {
+      bot.sendMessage(chatId, 'Error nyet, Groq lagi turu.');
+    }
   }
 });
 
-console.log('Bot jalan...');
+// Webhook Railway
+app.use(express.json());
+app.post(`/${token}`, (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
+});
+
+app.listen(process.env.PORT || 3000, async () => {
+  await bot.setWebHook(`https://${process.env.RAILWAY_PUBLIC_DOMAIN}/${token}`);
+  console.log("Novaa udah online nyet!");
+});
+  
+      
