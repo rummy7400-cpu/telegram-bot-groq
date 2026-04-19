@@ -2,10 +2,13 @@
   "name": "telegram-bot-groq",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": { "start": "node index.js" },
+  "scripts": {
+    "start": "node index.js"
+  },
   "dependencies": {
     "axios": "^1.7.2",
     "express": "^4.19.2",
+    "form-data": "^4.0.1",
     "groq-sdk": "^0.5.0",
     "node-telegram-bot-api": "^0.66.0"
   }
